@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SolRouteMandate — Autonomous Solana Capital &amp; Multi-Hop Treasury Console</title>
+    <meta
+      name="description"
+      content="Non-custodial Solana capital mandate engine and MultiHopper programmable multi-hop routing console."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to routing workspace</a>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <svg
+            class="brand-mark"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 7h10l3 5-3 5H4" />
+            <path d="M14 12h6" />
+            <circle cx="20" cy="12" r="1.5" fill="currentColor" />
+          </svg>
+          <span class="brand-name">SolRouteMandate</span>
+          <span class="status-pill" id="runtimeModePill">Initializing</span>
+        </div>
+
+        <div class="wallet-strip">
+          <div class="wallet-chip">
+            <span class="chip-label">Agent Signer</span>
+            <code class="mono-addr" id="agentWalletDisplay">Loading…</code>
+          </div>
+          <div class="wallet-chip">
+            <span class="chip-label">50% Revenue Wallet</span>
+            <code class="mono-addr" id="rewardsWalletDisplay">32647B…pq5yM</code>
+          </div>
+          <button type="button" class="btn btn-secondary" id="verifyMainnetBtn">
+            Verify Mainnet Programs
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="workspace" class="shell">
+      <section class="intro-band">
+        <div class="intro-copy">
+          <h1>Delegate Solana treasury routes under enforceable on-chain mandates.</h1>
+          <p>
+            Every MultiHopper route is priced against the 10-tier Raydium CLMM schedule, checked
+            against per-wallet spend limits and SOL reserve floors, partially signed client-side,
+            and recorded in a hash-chained SHA-256 provenance ledger.
+          </p>
+        </div>
+        <dl class="telemetry-strip" aria-label="Active mandate telemetry">
+          <div class="telemetry-cell">
+            <dt>24h Spend Used</dt>
+            <dd id="metricDailySpend">$0.00</dd>
+          </div>
+          <div class="telemetry-cell">
+            <dt>Autonomous Limit</dt>
+            <dd id="metricApprovalCap">$100.00</dd>
+          </div>
+          <div class="telemetry-cell">
+            <dt>Integrator Split</dt>
+            <dd>0.25% Atomic</dd>
+          </div>
+          <div class="telemetry-cell">
+            <dt>Provenance Receipts</dt>
+            <dd id="metricReceiptCount">0</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="console-grid">
+        <section class="panel" aria-labelledby="composerHeading">
+          <div class="panel-head">
+            <h2 id="composerHeading">Programmable Route &amp; Payroll Composer</h2>
+            <div class="segmented" role="tablist" aria-label="Transfer mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected="true"
+                class="seg-btn is-active"
+                data-mode="single"
+                id="tabSingle"
+              >
+                Single Recipient
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected="false"
+                class="seg-btn"
+                data-mode="payroll"
+                id="tabPayroll"
+              >
+                Multi-Destination Payroll
+              </button>
+            </div>
+          </div>
+
+          <form id="routeForm" class="form-stack" novalidate>
+            <div class="field-row">
+              <div class="field">
+                <label for="tokenSelect">Asset Mint</label>
+                <select id="tokenSelect" name="tokenMint">
+                  <option value="So11111111111111111111111111111111111111112">
+                    SOL (Native · 9 decimals)
+                  </option>
+                  <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v">
+                    USDC (SPL · 6 decimals)
+                  </option>
+                  <option value="2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH">
+                    USDG (Global Dollar · 6 decimals)
+                  </option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="amountInput">Gross Amount</label>
+                <input
+                  id="amountInput"
+                  name="amountTokens"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value="0.60"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="priceInput">Spot Price (USD)</label>
+                <input
+                  id="priceInput"
+                  name="tokenPriceUsd"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value="150"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="hopsInput">Abstraction Hops (3–10)</label>
+                <input
+                  id="hopsInput"
+                  name="hops"
+                  type="number"
+                  min="3"
+                  max="10"
+                  step="1"
+                  value="4"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="arrivalInput">Arrival Window (seconds)</label>
+                <input
+                  id="arrivalInput"
+                  name="arrivalSeconds"
+                  type="number"
+                  min="60"
+                  max="2592000"
+                  step="30"
+                  value="300"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="balanceInput">Wallet SOL Balance</label>
+                <input
+                  id="balanceInput"
+                  name="walletSol"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value="2.5"
+                  required
+                />
+              </div>
+            </div>
+
+            <div id="singleRecipientGroup" class="field">
+              <label for="recipientInput">Final Recipient Solana Address</label>
+              <input
+                id="recipientInput"
+                name="recipientWallet"
+                type="text"
+                spellcheck="false"
+                value="7pBqizvE8vQZ29F49NWSu9cho3s7M9SqJyNN1UoQyQ2u"
+              />
+            </div>
+
+            <div id="payrollGroup" class="field hidden">
+              <label for="payrollInput">
+                Destination Split (one <code>address,shareRatio</code> per line · up to 20 wallets)
+              </label>
+              <textarea id="payrollInput" rows="3" spellcheck="false">7pBqizvE8vQZ29F49NWSu9cho3s7M9SqJyNN1UoQyQ2u,0.60
+3UdgSTpcUbiBSmgdPBiVHRMbcDS731kMT6bAQQZgE3c4,0.40</textarea>
+            </div>
+
+            <label class="checkbox-row" for="humanApprovalCheck">
+              <input type="checkbox" id="humanApprovalCheck" />
+              <span>Attach explicit owner co-signature for transfers above autonomous threshold</span>
+            </label>
+
+            <p class="form-error hidden" id="formErrorBox" role="alert"></p>
+
+            <div class="action-bar">
+              <button type="button" class="btn btn-secondary" id="quoteBtn">
+                Recalculate On-Chain Quote
+              </button>
+              <button type="submit" class="btn btn-primary" id="executeBtn">
+                Execute Guarded 5-Stage Route
+              </button>
+            </div>
+          </form>
+
+          <div class="quote-ledger" id="quotePanel" aria-live="polite">
+            <div class="ledger-row">
+              <span>Selected Fee Schedule Tier</span>
+              <strong class="mono" id="qTier">tier_1</strong>
+            </div>
+            <div class="ledger-row">
+              <span>Net Delivered to Recipient(s)</span>
+              <strong class="mono accent-text" id="qNetDelivered">—</strong>
+            </div>
+            <div class="ledger-row">
+              <span>Protocol Percent Fee (0.50%)</span>
+              <span class="mono" id="qPercentFee">—</span>
+            </div>
+            <div class="ledger-row">
+              <span>Your Atomic 50% Integrator Share (0.25%)</span>
+              <strong class="mono accent-text" id="qIntegratorShare">—</strong>
+            </div>
+            <div class="ledger-row">
+              <span>Per-Hop Flat Charge + TRM Screening SOL</span>
+              <span class="mono" id="qFlatAndScreen">—</span>
+            </div>
+            <div class="ledger-row">
+              <span>Required SOL Upfront (incl. refundable step rent)</span>
+              <span class="mono" id="qRequiredSol">—</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="mandateHeading">
+          <div class="panel-head">
+            <h2 id="mandateHeading">Capital Mandate Guardrails &amp; On-Chain PDAs</h2>
+          </div>
+
+          <form id="mandateForm" class="form-stack">
+            <div class="field-row">
+              <div class="field">
+                <label for="maxSingleUsdInput">Max Single Tx (USD)</label>
+                <input id="maxSingleUsdInput" type="number" min="1" step="10" value="250" />
+              </div>
+              <div class="field">
+                <label for="maxDailyUsdInput">Max 24h Spend (USD)</label>
+                <input id="maxDailyUsdInput" type="number" min="10" step="25" value="1000" />
+              </div>
+              <div class="field">
+                <label for="approvalUsdInput">Auto-Sign Cap (USD)</label>
+                <input id="approvalUsdInput" type="number" min="0" step="10" value="100" />
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <label class="checkbox-row" for="haltToggle">
+                <input type="checkbox" id="haltToggle" />
+                <span>Engage emergency treasury kill-switch</span>
+              </label>
+              <button type="submit" class="btn btn-secondary">Save Mandate Policy</button>
+            </div>
+          </form>
+
+          <div class="divider"></div>
+
+          <div class="pda-inspector">
+            <div class="pda-controls">
+              <div class="field">
+                <label for="routeIdInput">Inspect Route ID (u64)</label>
+                <input id="routeIdInput" type="number" min="1" step="1" value="42" />
+              </div>
+              <button type="button" class="btn btn-secondary" id="derivePdaBtn">
+                Derive Anchor PDAs
+              </button>
+              <button type="button" class="btn btn-secondary" id="discoverMcpBtn">
+                Probe Live MCP
+              </button>
+            </div>
+            <div class="pda-list" id="pdaOutput" aria-live="polite"></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel provenance-section" aria-labelledby="ledgerHeading">
+        <div class="panel-head">
+          <h2 id="ledgerHeading">SHA-256 Provenance &amp; Webhook Lifecycle Stream</h2>
+          <button type="button" class="btn btn-secondary" id="simWebhookBtn">
+            Simulate Signed Webhook
+          </button>
+        </div>
+        <div id="provenanceContainer" class="provenance-list" aria-live="polite">
+          <div class="empty-state">
+            <p>No autonomous routes executed in this session yet.</p>
+            <span>
+              Submit a single-recipient or multi-destination payroll transfer above to verify
+              partial v0 signing, 5-stage broadcast ordering, and SHA-256 provenance hashing.
+            </span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

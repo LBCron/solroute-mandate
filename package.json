@@ -1,0 +1,45 @@
+{
+  "name": "@lbcron/solroute-mandate",
+  "version": "1.0.0",
+  "description": "Autonomous Solana Capital Agent, Enforceable Mandate Kernel & Programmable MultiHopper Multi-Hop Treasury Router (REST + MCP + On-Chain PDA Verifier)",
+  "type": "module",
+  "license": "MIT",
+  "author": "LBCron",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "solroute-mandate": "./dist/cli.js",
+    "solroute-mcp": "./dist/mcp/stdio.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run",
+    "start": "tsx src/cli.ts serve",
+    "demo": "tsx src/cli.ts demo",
+    "mcp": "tsx src/mcp/stdio.ts",
+    "verify:mainnet": "tsx src/cli.ts verify-mainnet"
+  },
+  "keywords": [
+    "solana",
+    "multihopper",
+    "oobe-protocol",
+    "steve-capital",
+    "sap-protocol",
+    "mcp",
+    "autonomous-agent",
+    "token2022",
+    "treasury-routing"
+  ],
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}
